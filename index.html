@@ -28,8 +28,18 @@ td.a{background:var(--auto)}td.y input{background:var(--in);padding:4px;min-widt
 .sm{font-size:12px;color:var(--mu)}.lk{color:var(--ac);cursor:pointer;background:none;border:0;font:inherit;padding:0}
 .hide{display:none}
 @media print{nav,header p,.row,button,.noprint{display:none!important}body{background:#fff;color:#000}.card{border:0}input,select{border:0;background:none;color:#000}td.a,.auto{background:#fff}}
+#lg{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+#lg .box{width:100%;max-width:340px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:22px}
+#lg h2{margin:0 0 4px;font-size:18px}#lg p{margin:0 0 14px;color:var(--mu);font-size:12px}#lg label{margin-top:10px}
+#lg .err{color:#c0392b;font-size:12px;min-height:16px;margin-top:8px}
+.lo{margin-left:auto;font-size:12px}
 </style></head><body>
-<header><h1>R. L. STEELS & ENERGY LTD. — Billet Register</h1><p>Enter a batch once; RHF registers fill themselves from the sequence number.</p></header>
+<header><div style="display:flex;align-items:center;gap:8px"><h1 style="flex:1">RL STEEL AURANGABAD — Billet Register</h1><span class="sm" id="who"></span><button class="g lo noprint" onclick="logout()">Log out</button></div><p>Enter a batch once; RHF registers fill themselves from the sequence number.</p></header>
+<div id="lg"><div class="box"><div style="text-align:center;margin-bottom:12px"><img id="lgo" src="logo.png" alt="RL Steel Aurangabad" style="max-width:100%;max-height:90px;background:#fff;border-radius:8px;padding:6px" onerror="this.style.display='none';document.getElementById('lgt').style.display='block'"><div id="lgt" style="display:none;font-weight:800;font-size:22px;letter-spacing:.04em;color:var(--ac)">RL STEEL<div style="font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.2em">AURANGABAD</div></div></div>
+<h2 style="text-align:center">RL Steel Aurangabad</h2><p style="text-align:center">RHF Billet Register — please sign in</p>
+<label>User ID</label><input id="lu" autocomplete="username" autocapitalize="off">
+<label>Password</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+<div class="err" id="le"></div><button class="b" style="width:100%;margin-top:6px" onclick="login()">Sign in</button></div></div>
 <nav id="nav"></nav><main id="app"></main>
 <script>
 const $=s=>document.querySelector(s), KEY="rhf_register_v1";
@@ -109,5 +119,15 @@ async function xl(mode){if(typeof XLSX=="undefined"){$("#xm").textContent="Excel
  await dl(mode=="all"?"RHF_Registers_All.xlsx":`RHF_Registers_Seq${seq}.xlsx`,XLSX.write(wb,{bookType:"xlsx",type:"array"}))}
 async function bk(){await dl("rhf_backup.json",JSON.stringify(S))}
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-load();render();
+const USERS={"rl_steel_rfh":"d32793b132444e08aa9ab4e015f4a57240b458e8775080cca255ef0a41f1a9c9"};
+async function sha(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+let fails=0,lockUntil=0,started=false;
+function start(u){$("#lg").classList.add("hide");$("#who").textContent=u;if(!started){started=true;load();render()}}
+async function login(){const u=$("#lu").value.trim().toLowerCase(),p=$("#lp").value,e=$("#le");
+ if(Date.now()<lockUntil){e.textContent="Too many attempts. Wait "+Math.ceil((lockUntil-Date.now())/1000)+" s.";return}
+ let ok=false;try{ok=!!USERS[u]&&USERS[u]===await sha(u+":"+p)}catch(x){e.textContent="Login needs a secure (https) page.";return}
+ if(ok){fails=0;try{sessionStorage.setItem("rhf_user",u)}catch(x){}$("#lp").value="";e.textContent="";start($("#lu").value.trim())}
+ else{fails++;e.textContent="Wrong User ID or password.";if(fails>=5){lockUntil=Date.now()+30000;fails=0}}}
+function logout(){try{sessionStorage.removeItem("rhf_user")}catch(x){}location.reload()}
+(function(){let u=null;try{u=sessionStorage.getItem("rhf_user")}catch(e){}if(u&&USERS[u])start(u);else $("#lu").focus()})();
 </script></body></html>
