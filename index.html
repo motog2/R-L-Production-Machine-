@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#b5441c"><link rel="icon" href="icon-192.png"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RHF Register – R. L. Steels & Energy Ltd.</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f6f6f3;--card:#fff;--tx:#1d1d1b;--mu:#6b6b66;--bd:#d8d8d2;--in:#fff7b8;--auto:#c9e8a6;--ac:#b5441c;--acx:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--card:#232321;--tx:#ecebe6;--mu:#9b9a93;--bd:#3d3d39;--in:#4a4416;--auto:#2f4a1c;--ac:#e8794a;--acx:#1a1a18}}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{padding:14px 16px 0}h1{font-size:17px;margin:0}header p{margin:2px 0 10px;color:var(--mu);font-size:12px}
+nav{display:flex;gap:4px;padding:0 12px;overflow-x:auto;border-bottom:1px solid var(--bd)}
+nav button{border:0;background:none;color:var(--mu);padding:10px 12px;font:inherit;font-weight:600;white-space:nowrap;border-bottom:3px solid transparent;cursor:pointer}
+nav button.on{color:var(--ac);border-color:var(--ac)}
+main{padding:14px 12px 40px;max-width:1200px;margin:auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+label{display:block;font-size:11px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
+input,select{width:100%;padding:7px;border:1px solid var(--bd);border-radius:6px;background:var(--in);color:var(--tx);font:inherit}
+.auto{background:var(--auto);border:1px solid var(--bd);border-radius:6px;padding:7px;min-height:33px}
+button.b{background:var(--ac);color:var(--acx);border:0;border-radius:6px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+button.g{background:none;border:1px solid var(--bd);color:var(--tx);border-radius:6px;padding:7px 12px;font:inherit;cursor:pointer}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{border:1px solid var(--bd);padding:4px 6px;text-align:left;white-space:nowrap}th{font-size:11px;text-transform:uppercase;color:var(--mu)}
+td.a{background:var(--auto)}td.y input{background:var(--in);padding:4px;min-width:70px}
+.sm{font-size:12px;color:var(--mu)}.lk{color:var(--ac);cursor:pointer;background:none;border:0;font:inherit;padding:0}
+.hide{display:none}
+@media print{nav,header p,.row,button,.noprint{display:none!important}body{background:#fff;color:#000}.card{border:0}input,select{border:0;background:none;color:#000}td.a,.auto{background:#fff}}
+</style></head><body>
+<header><h1>R. L. STEELS & ENERGY LTD. — Billet Register</h1><p>Enter a batch once; RHF registers fill themselves from the sequence number.</p></header>
+<nav id="nav"></nav><main id="app"></main>
+<script>
+const $=s=>document.querySelector(s), KEY="rhf_register_v1";
+const tabs=[["m","1 · PPC Charging Register"],["c","2 · RHF Charging"],["d","3 · RHF Discharging"],["h","History & Export"]];
+let S,tab="m",seq=null,q="",editId=null,msg="";
+const f2=n=>(Math.round(n*1000)/1000).toString();
+function seed(){const b=[[210,1,1846.32,3,"3.4 MTR X 2 PCS","1"],[211,1,1688.064,3.2,"3.6 MTR X 2 PCS","1"],[213,12,2057.328,3.5,"3.9 MTR X 2 PCS","2 TO 12"]];
+ const t=(m)=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+ const cm=[410,410,410,418,418,418,425,425,425,432,432,432,438,438,438],bl=[1,1,2,3,4,5,6,7,8,9,10,11,12,13,14],dm=[390,394,398,402,405,425,429,433,437,441,445,449,453,457,461];
+ return{batches:b.map((x,i)=>({id:"s"+i,date:"2024-04-15",seq:x[0],heat:"2DPF4",grade:"H-11",size:"240 X 280",pcs:x[1],wt:x[2],roll:"160 X 180",len:x[3],cut:x[4],bloom:x[5],cust:"SHREENATH"})),
+ regs:{210:{range:"3 TO 3.5",remarks:"",rows:cm.map((m,i)=>({bloom:bl[i],cd:"2024-04-15",cs:i<6?"A":"B",ct:t(m),dd:i<5?"2024-04-15":"2024-04-16",ds:i<5?"B":"A",dt:t(dm[i]),rem:""}))}}}}
+function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S)S=seed();seq=seq??(S.batches[0]?.seq??null)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const dmy=d=>d?d.split("-").reverse().join("."):"";
+const dim=s=>(s||"").toUpperCase().split("X").map(Number);
+function fin(b){const[a,c]=dim(b.size),[d,e]=dim(b.roll);return a&&c&&d&&e?a*c/d/e*b.len-0.2:0}
+const bat=n=>S.batches.filter(b=>String(b.seq)==String(n));
+const hdr=n=>{const b=bat(n);return b[0]?{heat:b[0].heat,grade:b[0].grade,size:b[0].size,roll:b[0].roll,pcs:b.filter(x=>x.heat==b[0].heat).reduce((s,x)=>s+ +x.pcs,0)}:null};
+function reg(n){return S.regs[n]??=({range:"",remarks:"",rows:[]})}
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function nav(){$("#nav").innerHTML=tabs.map(t=>`<button class="${t[0]==tab?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}
+function go(t){tab=t;render()}
+function render(){nav();$("#app").innerHTML=({m:vM,c:vC,d:vD,h:vH})[tab]()}
+/* ---------- Sheet 1 ---------- */
+const F=[["date","Date","date"],["seq","Sequence no.","number"],["heat","Heat no.","text"],["grade","Grade","text"],["size","Billet / bloom size","text"],["pcs","Pcs charged","number"],["wt","Weight per pc (kg)","number"],["roll","Rolling size","text"],["len","Billet length (m)","number"],["cut","Cutting length","text"],["bloom","Bloom number","text"],["cust","Customer","text"]];
+function vM(){const e=S.batches.find(b=>b.id==editId)||{};
+ return`<div class="card"><b>${editId?"Edit batch":"Add batch"}</b> <span class="sm">— yellow = your input</span>
+ <div class="grid" style="margin-top:8px">${F.map(f=>`<div><label>${f[1]}</label><input id="f_${f[0]}" type="${f[2]}" step="any" value="${esc(e[f[0]]??"")}"></div>`).join("")}</div>
+ <div class="row"><button class="b" onclick="addB()">${editId?"Update":"Add"} batch</button>${editId?`<button class="g" onclick="editId=null;render()">Cancel</button>`:""}<span class="sm">${msg}</span></div></div>
+ <div class="card sc"><table><tr>${F.slice(0,7).map(f=>`<th>${f[1]}</th>`).join("")}<th>Total qty (MT)</th>${F.slice(7).map(f=>`<th>${f[1]}</th>`).join("").replace("<th>Billet length (m)</th>","<th>Billet length (m)</th><th>Finish length</th>")}<th></th></tr>
+ ${S.batches.map(b=>`<tr><td>${dmy(b.date)}</td><td>${b.seq}</td><td>${esc(b.heat)}</td><td>${esc(b.grade)}</td><td>${esc(b.size)}</td><td>${b.pcs}</td><td>${f2(b.wt)}</td><td class="a">${f2(b.wt/1000*b.pcs)}</td><td>${esc(b.roll)}</td><td>${b.len}</td><td class="a">${f2(fin(b))}</td><td>${esc(b.cut)}</td><td>${esc(b.bloom)}</td><td>${esc(b.cust)}</td><td><button class="lk" onclick="editId='${b.id}';render()">Edit</button> · <button class="lk" onclick="delB('${b.id}')">Delete</button></td></tr>`).join("")||`<tr><td colspan=15>No batches yet.</td></tr>`}</table>
+ <p class="sm">Green = calculated. Total MT = weight × pcs ÷ 1000. Finish length = (billet area ÷ rolling area) × billet length − 0.2.</p></div>`}
+function addB(){const o={};for(const f of F)o[f[0]]=$("#f_"+f[0]).value.trim();
+ if(!o.seq||!o.heat||!o.pcs){msg="Sequence, heat and pcs are required.";return render()}
+ ["seq","pcs","wt","len"].forEach(k=>o[k]=+o[k]||0);
+ if(editId){Object.assign(S.batches.find(b=>b.id==editId),o);editId=null}else S.batches.push({id:"b"+Date.now(),...o});
+ seq=o.seq;msg="Saved.";save();render()}
+function delB(id){if(confirm("Delete this batch?")){S.batches=S.batches.filter(b=>b.id!=id);save();render()}}
+/* ---------- Sheets 2 & 3 ---------- */
+function head(){const h=hdr(seq),opts=[...new Set(S.batches.map(b=>b.seq))].sort((a,b)=>a-b);
+ return`<div class="card"><div class="grid"><div><label>Sequence number</label><select onchange="seq=this.value;render()">${opts.map(o=>`<option ${o==seq?"selected":""}>${o}</option>`).join("")||"<option>—</option>"}</select></div>
+ ${[["Heat number",h?.heat],["Grade",h?.grade],["Billet / bloom size",h?.size],["Number charged",h?.pcs],["Rolling size",h?.roll]].map(x=>`<div><label>${x[0]}</label><div class="auto">${esc(x[1]??"—")}</div></div>`).join("")}
+ <div><label>Billet length range</label><input value="${esc(reg(seq).range)}" onchange="reg(seq).range=this.value;save()"></div></div></div>`}
+const N=60;
+function ensure(){const r=reg(seq);while(r.rows.length<N)r.rows.push({bloom:"",cd:"",cs:"",ct:"",dd:"",ds:"",dt:"",rem:""});return r}
+function inp(i,k,type,w){return`<td class="y"><input type="${type}" value="${esc(ensure().rows[i][k])}" onchange="ensure().rows[${i}].${k}=this.value;save()" ${w?`style="min-width:${w}px"`:""}></td>`}
+function sh(i,k){const v=ensure().rows[i][k];return`<td class="y"><select onchange="ensure().rows[${i}].${k}=this.value;save()" style="min-width:56px"><option></option>${["A","B","C"].map(s=>`<option ${v==s?"selected":""}>${s}</option>`).join("")}</select></td>`}
+function vC(){if(seq==null)return"<div class='card'>Add a batch first.</div>";ensure();const h=hdr(seq);
+ return head()+`<div class="card sc"><div class="row" style="margin:0 0 8px"><button class="g" onclick="fillBl()">Auto-number blooms 1…${h?.pcs||""}</button><button class="g" onclick="window.print&&window.print()">Print</button></div>
+ <table><tr><th>Sr.</th><th>Bloom no.</th><th>Charging date</th><th>Shift</th><th>Charging time</th><th>Remarks</th></tr>
+ ${Array.from({length:N},(_,i)=>`<tr><td>${i+1}</td>${inp(i,"bloom","text",60)}${inp(i,"cd","date")}${sh(i,"cs")}${inp(i,"ct","time")}${inp(i,"rem","text",140)}</tr>`).join("")}</table>
+ <label style="margin-top:10px">Section change / roll change remarks</label><input value="${esc(reg(seq).remarks)}" onchange="reg(seq).remarks=this.value;save()"></div>`}
+function fillBl(){const h=hdr(seq),r=ensure();for(let i=0;i<(h?.pcs||0)&&i<N;i++)r.rows[i].bloom=i+1;save();render()}
+function vD(){if(seq==null)return"<div class='card'>Add a batch first.</div>";ensure();
+ return head()+`<div class="card sc"><div class="row" style="margin:0 0 8px"><span class="sm">Green = pulled from RHF Charging. Yellow = discharging input.</span><button class="g" onclick="window.print&&window.print()">Print</button></div>
+ <table><tr><th>Sr.</th><th>Bloom no.</th><th>Charging date</th><th>Shift</th><th>Charging time</th><th>Discharging date</th><th>Shift</th><th>Discharging time</th><th>Remarks</th></tr>
+ ${Array.from({length:N},(_,i)=>{const r=reg(seq).rows[i],has=r.bloom!==""||r.cd;return`<tr><td class="a">${i+1}</td><td class="a">${has?esc(r.bloom):""}</td><td class="a">${dmy(r.cd)}</td><td class="a">${esc(r.cs)}</td><td class="a">${esc(r.ct)}</td>${inp(i,"dd","date")}${sh(i,"ds")}${inp(i,"dt","time")}${inp(i,"drem","text",140)}</tr>`}).join("")}</table></div>`}
+/* ---------- History & export ---------- */
+function vH(){const ql=q.toLowerCase(),seqs=[...new Set(S.batches.map(b=>b.seq))].sort((a,b)=>b-a);
+ const rows=seqs.map(s=>{const b=bat(s),h=b[0],r=S.regs[s];return{s,h,mt:b.reduce((t,x)=>t+x.wt/1000*x.pcs,0),pcs:b.reduce((t,x)=>t+ +x.pcs,0),cust:[...new Set(b.map(x=>x.cust))].join(", "),c:r?r.rows.filter(x=>x.ct).length:0,d:r?r.rows.filter(x=>x.dt).length:0}}).filter(r=>!ql||[r.s,r.h.heat,r.h.grade,r.cust,r.h.date].join(" ").toLowerCase().includes(ql));
+ return`<div class="card"><div class="row" style="margin:0"><div style="flex:1;min-width:200px"><label>Search</label><input id="qs" placeholder="Heat, sequence, grade, customer…" value="${esc(q)}" oninput="q=this.value;rH()"></div>
+ <button class="b" onclick="xl('all')">Export all (Excel)</button><button class="g" onclick="xl('seq')">Export seq ${seq??""} registers (Excel)</button><button class="g" onclick="bk()">Backup (JSON)</button><button class="g" onclick="if(confirm('Erase everything and restore sample data?')){S=seed();save();render()}">Reset to sample</button></div>
+ <p class="sm" id="xm"></p></div><div class="card sc" id="hl">${hl(rows)}</div>`}
+function hl(rows){return`<table><tr><th>Date</th><th>Seq</th><th>Heat</th><th>Grade</th><th>Customer</th><th>Pcs</th><th>MT</th><th>Charged</th><th>Discharged</th><th></th></tr>${rows.map(r=>`<tr><td>${dmy(r.h.date)}</td><td>${r.s}</td><td>${esc(r.h.heat)}</td><td>${esc(r.h.grade)}</td><td>${esc(r.cust)}</td><td>${r.pcs}</td><td>${f2(r.mt)}</td><td>${r.c}</td><td>${r.d}</td><td><button class="lk" onclick="seq='${r.s}';go('c')">Charging</button> · <button class="lk" onclick="seq='${r.s}';go('d')">Discharging</button></td></tr>`).join("")||"<tr><td colspan=10>No matches.</td></tr>"}</table>`}
+function rH(){const t=$("#qs"),p=t.selectionStart;render();const n=$("#qs");n.focus();n.setSelectionRange(p,p)}
+async function dl(name,data){try{const bl=data instanceof Blob?data:new Blob([data]),u=URL.createObjectURL(bl),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);$("#xm").textContent="Saved "+name+" (check Downloads)"}catch(e){$("#xm").textContent="Could not save: "+e.message}}
+function regSheet(s,dis){const h=hdr(s),r=reg(s),a=[["R. L. STEELS & ENERGY LTD."],[dis?"RHF DIS-CHARGING REGISTER":"RHF CHARGING REGISTER"],["SEQUENCE NUMBER",s,"HEAT NUMBER",h?.heat,"GRADE",h?.grade,"BILLET / BLOOM SIZE",h?.size,"NUMBER OF CHARGED",h?.pcs,"ROLLING SIZE",h?.roll],["BILLET LENGTH RANGE",r.range],[],
+ dis?["SR. NO.","BLOOM NUMBER","CHARGING DATE","SHIFT","CHARGING TIME","DIS-CHARGING DATE","SHIFT","DIS-CHARGING TIME","REMARKS"]:["SR. NO.","BLOOM NUMBER","CHARGING DATE","SHIFT","CHARGING TIME","REMARKS"]];
+ r.rows.forEach((x,i)=>{if(x.bloom===""&&!x.cd&&!x.dd)return;a.push(dis?[i+1,x.bloom,dmy(x.cd),x.cs,x.ct,dmy(x.dd),x.ds,x.dt,x.drem||""]:[i+1,x.bloom,dmy(x.cd),x.cs,x.ct,x.rem])});
+ a.push([],["SECTION CHANGE / ROLL CHANGE REMARKS",r.remarks]);return XLSX.utils.aoa_to_sheet(a)}
+async function xl(mode){if(typeof XLSX=="undefined"){$("#xm").textContent="Excel library failed to load.";return}
+ const wb=XLSX.utils.book_new(),m=[["DATE","SEQUENCE NUMBER","HEAT NUMBER","GRADE","BILLET / BLOOM SIZE","NUMBER OF PCS. CHARGED","WEIGHT PER PC IN Kg","TOTAL QTY. IN MT","ROLLING SIZE","BILLET LENGTH","FINISH LENGTH","CUTTING LENGTH","BLOOM NUMBER","CUSTOMER"]];
+ S.batches.forEach(b=>m.push([dmy(b.date),b.seq,b.heat,b.grade,b.size,b.pcs,b.wt,b.wt/1000*b.pcs,b.roll,b.len,fin(b),b.cut,b.bloom,b.cust]));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(m),"PPC-Charging Register");
+ const list=mode=="all"?[...new Set(S.batches.map(b=>b.seq))]:[seq];
+ list.forEach(s=>{const sfx=mode=="all"?" "+s:"";XLSX.utils.book_append_sheet(wb,regSheet(s,0),("RHF-Charging"+sfx).slice(0,31));XLSX.utils.book_append_sheet(wb,regSheet(s,1),("RHF-Discharging"+sfx).slice(0,31))});
+ await dl(mode=="all"?"RHF_Registers_All.xlsx":`RHF_Registers_Seq${seq}.xlsx`,XLSX.write(wb,{bookType:"xlsx",type:"array"}))}
+async function bk(){await dl("rhf_backup.json",JSON.stringify(S))}
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+load();render();
+</script></body></html>
